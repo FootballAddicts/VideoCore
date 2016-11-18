@@ -95,6 +95,7 @@ typedef NS_ENUM(NSInteger, VCConnectionQuality) {
 /*! Setters / Getters for session properties */
 @property (nonatomic, assign) CGSize            videoSize;      // Change will not take place until the next RTMP Session
 @property (nonatomic, assign) int               bitrate;        // Change will not take place until the next RTMP Session
+@property (nonatomic, assign) int               initialBitrate; // When using adaptive bitrate this will be the bitrate it starts on
 @property (nonatomic, assign) int               fps;            // Change will not take place until the next RTMP Session
 @property (nonatomic, assign, readonly) BOOL    useInterfaceOrientation;
 @property (nonatomic, assign) VCCameraState cameraState;
