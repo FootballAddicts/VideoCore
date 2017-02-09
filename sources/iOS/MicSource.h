@@ -30,7 +30,6 @@
 #import <AudioToolbox/AudioToolbox.h>
 #include <videocore/sources/ISource.hpp>
 #include <videocore/transforms/IOutput.hpp>
-#include <videocore/sources/iOS/CaptureSessionSource.h>
 
 #import <Foundation/Foundation.h>
 
@@ -43,7 +42,7 @@ namespace videocore { namespace iOS {
      *
      */
 
-    class MicSource : public CaptureSessionSource
+    class MicSource : public ISource, public std::enable_shared_from_this<MicSource>
     {
     public:
 
@@ -56,55 +55,52 @@ namespace videocore { namespace iOS {
          *                          applications that may be capturing Audio Unit data and do not wish to capture this source.
          *
          */
-        MicSource();
-
+        MicSource(double sampleRate = 44100.,
+                  int channelCount = 2,
+                  std::function<void(AudioUnit&)> excludeAudioUnit = nullptr);
+        
         /*! Destructor */
         ~MicSource();
 
 
     public:
-        /*!
-         *  Setup microphone properties
-         *
-         *  \param sampleRate   Sample rate
-         *  \param channelCount Channel count
-         */
-        void setup(AVCaptureSession *session, double sampleRate, int channelCount);
-
+        
         /*! ISource::setOutput */
         void setOutput(std::shared_ptr<IOutput> output);
         
-        void bufferCaptured(CMSampleBufferRef sampleBuffer);
-
-    protected:
-        /*!
-         *  Returns media type for the source
-         */
-        NSString *mediaType();
+        /*! Used by the Audio Unit as a callback method */
+        void inputCallback(uint8_t* data, size_t data_size, int inNumberFrames);
+        
+        void interruptionBegan();
+        void interruptionEnded();
         
         /*!
-         *  Method to create and setup capture session connections from inputs to outputs
+         *  \return a reference to the source's Audio Unit
          */
-        void setupCaptureSessionConnections();
-        
-        /*!
-         *  Property for capture output delegate
-         */
-        void setCaptureOutputDelegate(id value);
+        const AudioUnit& audioUnit() const { return m_audioUnit; };
         
     private:
+        
+        InterruptionHandler*   m_interruptionHandler;
+        
+        AudioComponentInstance m_audioUnit;
+        AudioComponent         m_component;
+        
         double m_sampleRate;
         int m_channelCount;
         
-        /*!
-         *  Property for capture output delegate
-         */
-        NSMutableData *m_audioBufferListData;
-        void setAudioBufferListData(NSMutableData *data);
-        NSMutableData *audioBufferListData();
+        std::weak_ptr<IOutput> m_output;
+        
     };
-
+    
 }
 }
+@interface InterruptionHandler : NSObject
+{
+@public
+    videocore::iOS::MicSource* _source;
+}
+- (void) handleInterruption: (NSNotification*) notification;
+@end
 
 #endif /* defined(__videocore__MicSource__) */

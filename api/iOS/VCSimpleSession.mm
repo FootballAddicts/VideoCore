@@ -401,7 +401,7 @@ namespace videocore { namespace simpleApi {
         _writer = [writer retain];
         
         m_cameraSource->setWriter(writer);
-        m_micSource->setWriter(writer);
+        //m_micSource->setWriter(writer);
     }
 }
 // -----------------------------------------------------------------------------
@@ -903,8 +903,7 @@ namespace videocore { namespace simpleApi {
     }
     {
         // Add mic source
-        m_micSource = std::make_shared<videocore::iOS::MicSource>();
-        m_micSource->setup(session, self.audioSampleRate, self.audioChannelCount);
+        m_micSource = std::make_shared<videocore::iOS::MicSource>(self.audioSampleRate, self.audioChannelCount);
         m_micSource->setOutput(m_audioMixer);
 
         const auto epoch = std::chrono::steady_clock::now();
